@@ -1,0 +1,2 @@
+# paclog
+Pacman log parser
