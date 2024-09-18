@@ -6,9 +6,9 @@ use super::{package, upgrade};
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Error {
     /// An error parsing a package occurred.
-    Package(package::Missing),
+    Package(package::Error),
     /// An error parsing an upgrade occurred.
-    Upgrade(upgrade::Missing),
+    Upgrade(upgrade::Error),
     /// Expected log parameters are missing.
     MissingParameters,
 }
@@ -33,14 +33,14 @@ impl std::error::Error for Error {
     }
 }
 
-impl From<package::Missing> for Error {
-    fn from(error: package::Missing) -> Self {
+impl From<package::Error> for Error {
+    fn from(error: package::Error) -> Self {
         Self::Package(error)
     }
 }
 
-impl From<upgrade::Missing> for Error {
-    fn from(error: upgrade::Missing) -> Self {
+impl From<upgrade::Error> for Error {
+    fn from(error: upgrade::Error) -> Self {
         Self::Upgrade(error)
     }
 }

@@ -1,6 +1,8 @@
 use std::str::FromStr;
 
-pub use error::Missing;
+use regex::Regex;
+
+pub use error::Error;
 
 mod error;
 
@@ -35,35 +37,20 @@ impl Upgrade {
 }
 
 impl FromStr for Upgrade {
-    type Err = Missing;
+    type Err = Error;
 
     fn from_str(text: &str) -> Result<Self, Self::Err> {
-        let captures = regex::Regex::new(REGEX)
+        let (_, [name, old_version, new_version]) = Regex::new(REGEX)
             .unwrap_or_else(|_| unreachable!())
-            .captures(text)
-            .ok_or(Missing::NameAndVersions)?;
-        let mut matches = captures.iter();
-        matches.next(); // Skip the full match
+            .captures_iter(text)
+            .map(|capture| capture.extract())
+            .next()
+            .ok_or_else(|| Error::MalformedUpgrade(text.to_string()))?;
 
         Ok(Self {
-            name: matches
-                .next()
-                .ok_or(Missing::Name)?
-                .ok_or(Missing::Name)?
-                .as_str()
-                .to_string(),
-            old_version: matches
-                .next()
-                .ok_or(Missing::OldVersion)?
-                .ok_or(Missing::OldVersion)?
-                .as_str()
-                .to_string(),
-            new_version: matches
-                .next()
-                .ok_or(Missing::NewVersion)?
-                .ok_or(Missing::NewVersion)?
-                .as_str()
-                .to_string(),
+            name: name.to_string(),
+            old_version: old_version.to_string(),
+            new_version: new_version.to_string(),
         })
     }
 }

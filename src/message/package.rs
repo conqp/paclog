@@ -1,7 +1,10 @@
-mod error;
-
-pub use error::Missing;
 use std::str::FromStr;
+
+use regex::Regex;
+
+pub use error::Error;
+
+mod error;
 
 const REGEX: &str = r"^(.+) \((.+)\)$";
 
@@ -27,29 +30,19 @@ impl Package {
 }
 
 impl FromStr for Package {
-    type Err = Missing;
+    type Err = Error;
 
     fn from_str(text: &str) -> Result<Self, Self::Err> {
-        let captures = regex::Regex::new(REGEX)
+        let (_, [name, version]) = Regex::new(REGEX)
             .unwrap_or_else(|_| unreachable!())
-            .captures(text)
-            .ok_or(Missing::NameAndVersion)?;
-        let mut matches = captures.iter();
-        matches.next(); // Skip the full match
+            .captures_iter(text)
+            .map(|capture| capture.extract())
+            .next()
+            .ok_or_else(|| Error::MalformedPackage(text.to_string()))?;
 
         Ok(Self {
-            name: matches
-                .next()
-                .ok_or(Missing::Name)?
-                .ok_or(Missing::Name)?
-                .as_str()
-                .to_string(),
-            version: matches
-                .next()
-                .ok_or(Missing::Version)?
-                .ok_or(Missing::Version)?
-                .as_str()
-                .to_string(),
+            name: name.to_string(),
+            version: version.to_string(),
         })
     }
 }
