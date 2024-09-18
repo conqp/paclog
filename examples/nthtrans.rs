@@ -15,6 +15,8 @@ struct Args {
     index: isize,
     #[clap(long, short, default_value = DEFAULT_FILE)]
     file: String,
+    #[clap(long, short)]
+    packages: bool,
 }
 
 fn main() {
@@ -39,6 +41,21 @@ fn main() {
     } else {
         args.index.abs_diff(0)
     }) {
-        println!("{transaction:?}");
+        if args.packages {
+            print_packages(transaction);
+        } else {
+            println!("{transaction:?}");
+        }
     }
+}
+
+fn print_packages(transaction: &Transaction) {
+    println!(
+        "{}",
+        transaction
+            .retained()
+            .map(ToString::to_string)
+            .collect::<Vec<_>>()
+            .join(" ")
+    );
 }
