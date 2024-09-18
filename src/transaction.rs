@@ -13,6 +13,12 @@ impl Transaction {
         Self { entries }
     }
 
+    /// Return a slice of the entries.
+    #[must_use]
+    pub const fn entries(&self) -> &[Entry] {
+        &self.entries
+    }
+
     /// Return the amount of entries.
     #[must_use]
     pub const fn len(&self) -> usize {
