@@ -17,7 +17,6 @@ struct Args {
 
 fn main() {
     let args = Args::parse();
-
     let transaction = BufReader::new(
         OpenOptions::new()
             .read(true)
@@ -29,17 +28,5 @@ fn main() {
     .transactions()
     .max_by(|a, b| a.len().cmp(&b.len()))
     .expect("No transactions found");
-
     println!("{transaction:?}");
-    println!(
-        "{:?}",
-        transaction
-            .begin()
-            .expect("No transaction start")
-            .timestamp()
-    );
-    println!(
-        "{:?}",
-        transaction.end().expect("No transaction end").timestamp()
-    );
 }
