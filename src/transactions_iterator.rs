@@ -34,6 +34,20 @@ where
     const fn is_within_transaction(&self) -> bool {
         self.start.is_some() && self.completion.is_none()
     }
+
+    fn make_transaction(&mut self) -> Option<Transaction> {
+        self.start.take().map(|start| {
+            Transaction::new(
+                start,
+                self.installed.as_slice().into(),
+                self.upgraded.as_slice().into(),
+                self.reinstalled.as_slice().into(),
+                self.removed.as_slice().into(),
+                self.completion.take(),
+                self.hooks.as_slice().into(),
+            )
+        })
+    }
 }
 
 impl<T> From<T> for TransactionsIterator<T>
@@ -62,32 +76,22 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         let mut entry;
-        let mut transaction: Option<Transaction> = None;
 
         loop {
-            entry = self.entries.next()?;
+            if let Some(e) = self.entries.next() {
+                entry = e;
+            } else {
+                return self.make_transaction();
+            }
 
             match entry.message() {
                 Message::TransactionStarted => {
-                    if let Some(start) = self.start.take() {
-                        transaction.replace(Transaction::new(
-                            start,
-                            self.installed.as_slice().into(),
-                            self.upgraded.as_slice().into(),
-                            self.reinstalled.as_slice().into(),
-                            self.removed.as_slice().into(),
-                            self.completion.take(),
-                            self.hooks.as_slice().into(),
-                        ));
-                    }
-
-                    self.reset(entry);
-
-                    if let Some(transaction) = transaction.take() {
+                    if let Some(transaction) = self.make_transaction() {
+                        self.reset(entry);
                         return Some(transaction);
                     }
 
-                    continue;
+                    self.reset(entry);
                 }
                 Message::TransactionCompleted => {
                     self.completion.replace(entry);
