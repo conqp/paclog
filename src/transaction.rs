@@ -79,12 +79,25 @@ impl Transaction {
         })
     }
 
+    /// Return an iterator of packet names that were removed in this transaction.
+    pub fn removed(&self) -> impl Iterator<Item = &Package> {
+        self.entries.iter().filter_map(|entry| {
+            if let Message::Removed(package) = entry.message() {
+                Some(package)
+            } else {
+                None
+            }
+        })
+    }
+
     /// Return an iterator of all packages that were part of this transaction.
     pub fn packages(&self) -> impl Iterator<Item = &str> {
         self.entries
             .iter()
             .filter_map(|entry| match entry.message() {
-                Message::Installed(package) | Message::Reinstalled(package) => Some(package.name()),
+                Message::Installed(package)
+                | Message::Reinstalled(package)
+                | Message::Removed(package) => Some(package.name()),
                 Message::Upgraded(upgrade) => Some(upgrade.name()),
                 _ => None,
             })
