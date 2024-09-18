@@ -33,14 +33,13 @@ fn main() {
     .transactions()
     .collect();
 
-    if let Some(transaction) = transactions.get(if args.index < 0 {
-        transactions
-            .len()
-            .checked_add_signed(args.index)
-            .unwrap_or_default()
+    if let Some(transaction) = if args.index < 0 {
+        transactions.len().checked_add_signed(args.index)
     } else {
-        args.index.abs_diff(0)
-    }) {
+        Some(args.index.abs_diff(0))
+    }
+    .and_then(|index| transactions.get(index))
+    {
         if args.packages {
             print_packages(transaction);
         } else {
