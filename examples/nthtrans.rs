@@ -31,6 +31,7 @@ impl Args {
 }
 
 fn main() {
+    env_logger::init();
     let args = Args::parse();
 
     let transactions: Vec<Transaction> = BufReader::new(

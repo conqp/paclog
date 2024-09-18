@@ -16,6 +16,7 @@ struct Args {
 }
 
 fn main() {
+    env_logger::init();
     let args = Args::parse();
     let transaction = BufReader::new(
         OpenOptions::new()
