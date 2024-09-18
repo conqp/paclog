@@ -1,3 +1,4 @@
+//! Print the last transaction from the pacman logfile.
 use clap::Parser;
 use pacmanlog::{Entry, Transactions};
 use std::fs::OpenOptions;
@@ -24,11 +25,10 @@ fn main() {
     )
     .lines()
     .filter_map(|line| line.ok().and_then(|line| Entry::from_str(&line).ok()))
-    .inspect(|entry| log::debug!("{:?}", entry))
     .transactions()
     .last()
     .expect("No transactions found")
-    .packages()
+    .retained()
     .map(ToString::to_string)
     .collect();
 
