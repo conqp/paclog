@@ -102,6 +102,17 @@ impl Transaction {
                 _ => None,
             })
     }
+
+    /// Return an iterator of all packages that were retained in this transaction.
+    pub fn retained(&self) -> impl Iterator<Item = &str> {
+        self.entries
+            .iter()
+            .filter_map(|entry| match entry.message() {
+                Message::Installed(package) | Message::Reinstalled(package) => Some(package.name()),
+                Message::Upgraded(upgrade) => Some(upgrade.name()),
+                _ => None,
+            })
+    }
 }
 
 impl From<Box<[Entry]>> for Transaction {
