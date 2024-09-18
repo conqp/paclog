@@ -7,7 +7,7 @@ use crate::error::Error;
 use crate::message::Message;
 use crate::Issuer;
 
-const REGEX: &str = r"\[(.+)\] \[.+\] .+";
+const REGEX: &str = r"\[(.+)\] \[(.+)\] (.+)";
 const TIME_FORMAT: &str = "%Y-%m-%dT%H:%M:%S%z";
 
 /// A log file entry.
