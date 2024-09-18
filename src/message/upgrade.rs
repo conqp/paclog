@@ -1,8 +1,11 @@
+use std::cell::LazyCell;
 use std::str::FromStr;
 
 use regex::Regex;
 
-const REGEX: &str = r"^(.+) \((.+) -> (.+)\)$";
+const REGEX_STR: &str = r"^(.+) \((.+) -> (.+)\)$";
+#[allow(clippy::declare_interior_mutable_const)]
+const REGEX: LazyCell<Regex> = LazyCell::new(|| Regex::new(REGEX_STR).expect("malformed regex"));
 
 /// Represents a package upgrade.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -36,8 +39,8 @@ impl FromStr for Upgrade {
     type Err = String;
 
     fn from_str(text: &str) -> Result<Self, Self::Err> {
-        let (_, [name, old_version, new_version]) = Regex::new(REGEX)
-            .unwrap_or_else(|_| unreachable!())
+        #[allow(clippy::borrow_interior_mutable_const)]
+        let (_, [name, old_version, new_version]) = REGEX
             .captures_iter(text)
             .map(|capture| capture.extract())
             .next()

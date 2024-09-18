@@ -1,3 +1,4 @@
+use std::cell::LazyCell;
 use std::str::FromStr;
 
 use chrono::{DateTime, FixedOffset};
@@ -7,7 +8,9 @@ use crate::error::Error;
 use crate::message::Message;
 use crate::Issuer;
 
-const REGEX: &str = r"\[(.+)\] \[(.+)\] (.+)";
+const REGEX_STR: &str = r"\[(.+)\] \[(.+)\] (.+)";
+#[allow(clippy::declare_interior_mutable_const)]
+const REGEX: LazyCell<Regex> = LazyCell::new(|| Regex::new(REGEX_STR).expect("malformed regex"));
 const TIME_FORMAT: &str = "%Y-%m-%dT%H:%M:%S%z";
 
 /// A log file entry.
@@ -42,8 +45,8 @@ impl FromStr for Entry {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (_, [timestamp, issuer, message]) = Regex::new(REGEX)
-            .unwrap_or_else(|_| unreachable!())
+        #[allow(clippy::borrow_interior_mutable_const)]
+        let (_, [timestamp, issuer, message]) = REGEX
             .captures_iter(s)
             .map(|capture| capture.extract())
             .next()
