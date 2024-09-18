@@ -19,13 +19,24 @@ struct Args {
     packages: bool,
 }
 
+impl Args {
+    pub fn nth_transaction<'a>(&self, transactions: &'a [Transaction]) -> Option<&'a Transaction> {
+        if self.index < 0 {
+            transactions.len().checked_add_signed(self.index)
+        } else {
+            Some(self.index.abs_diff(0))
+        }
+        .and_then(|index| transactions.get(index))
+    }
+}
+
 fn main() {
     let args = Args::parse();
 
     let transactions: Vec<Transaction> = BufReader::new(
         OpenOptions::new()
             .read(true)
-            .open(args.file)
+            .open(&args.file)
             .expect("Failed to open file"),
     )
     .lines()
@@ -33,13 +44,7 @@ fn main() {
     .transactions()
     .collect();
 
-    if let Some(transaction) = if args.index < 0 {
-        transactions.len().checked_add_signed(args.index)
-    } else {
-        Some(args.index.abs_diff(0))
-    }
-    .and_then(|index| transactions.get(index))
-    {
+    if let Some(transaction) = args.nth_transaction(&transactions) {
         if args.packages {
             print_packages(transaction);
         } else {
