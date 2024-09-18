@@ -1,5 +1,5 @@
-use crate::message::Message;
-use crate::Entry;
+use crate::message::{Message, Package};
+use crate::{Entry, Upgrade};
 
 /// Representation of a pacman transaction.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -47,10 +47,10 @@ impl Transaction {
     }
 
     /// Return an iterator of packet names that were installed in this transaction.
-    pub fn installed(&self) -> impl Iterator<Item = &str> {
+    pub fn installed(&self) -> impl Iterator<Item = &Package> {
         self.entries.iter().filter_map(|entry| {
-            if let Message::Installed { package, .. } = entry.message() {
-                Some(package.as_str())
+            if let Message::Installed(package) = entry.message() {
+                Some(package)
             } else {
                 None
             }
@@ -58,10 +58,10 @@ impl Transaction {
     }
 
     /// Return an iterator of packet names that were upgraded in this transaction.
-    pub fn upgraded(&self) -> impl Iterator<Item = &str> {
+    pub fn upgraded(&self) -> impl Iterator<Item = &Upgrade> {
         self.entries.iter().filter_map(|entry| {
-            if let Message::Upgraded { package, .. } = entry.message() {
-                Some(package.as_str())
+            if let Message::Upgraded(upgrade) = entry.message() {
+                Some(upgrade)
             } else {
                 None
             }
@@ -69,10 +69,10 @@ impl Transaction {
     }
 
     /// Return an iterator of packet names that were reinstalled in this transaction.
-    pub fn reinstalled(&self) -> impl Iterator<Item = &str> {
+    pub fn reinstalled(&self) -> impl Iterator<Item = &Package> {
         self.entries.iter().filter_map(|entry| {
-            if let Message::Reinstalled { package, .. } = entry.message() {
-                Some(package.as_str())
+            if let Message::Reinstalled(package) = entry.message() {
+                Some(package)
             } else {
                 None
             }
@@ -84,9 +84,8 @@ impl Transaction {
         self.entries
             .iter()
             .filter_map(|entry| match entry.message() {
-                Message::Installed { package, .. }
-                | Message::Upgraded { package, .. }
-                | Message::Reinstalled { package, .. } => Some(package.as_str()),
+                Message::Installed(package) | Message::Reinstalled(package) => Some(package.name()),
+                Message::Upgraded(upgrade) => Some(upgrade.name()),
                 _ => None,
             })
     }

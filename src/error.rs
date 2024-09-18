@@ -11,7 +11,7 @@ pub enum Error {
     /// Timestamp has invalid format.
     InvalidTimestamp(ParseError),
     /// Message is invalid.
-    InvalidMessage(crate::message::MissingField),
+    InvalidMessage(crate::message::Error),
 }
 
 impl Display for Error {
@@ -41,8 +41,8 @@ impl From<ParseError> for Error {
     }
 }
 
-impl From<crate::message::MissingField> for Error {
-    fn from(error: crate::message::MissingField) -> Self {
+impl From<crate::message::Error> for Error {
+    fn from(error: crate::message::Error) -> Self {
         Self::InvalidMessage(error)
     }
 }
