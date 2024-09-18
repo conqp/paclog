@@ -13,7 +13,7 @@ impl Transaction {
     /// This method is crate-only since we do not want users to
     /// create new transactions from arbitrary entries.
     #[must_use]
-    pub(crate) fn new(entries: Box<[Entry]>) -> Self {
+    pub(crate) const fn new(entries: Box<[Entry]>) -> Self {
         Self { entries }
     }
 
