@@ -75,63 +75,61 @@ where
     type Item = Transaction;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let mut entry;
-
         loop {
-            if let Some(e) = self.entries.next() {
-                entry = e;
+            if let Some(entry) = self.entries.next() {
+                match entry.message() {
+                    Message::TransactionStarted => {
+                        if let Some(transaction) = self.make_transaction() {
+                            self.reset(entry);
+                            return Some(transaction);
+                        }
+
+                        self.reset(entry);
+                    }
+                    Message::TransactionCompleted => {
+                        self.completion.replace(entry);
+                    }
+                    Message::Other(_) => {
+                        if matches!(entry.issuer(), Issuer::Alpm | Issuer::AlpmScriptlet) {
+                            self.hooks.push(entry);
+                        }
+                    }
+                    Message::Installed(package) => {
+                        if self.is_within_transaction() {
+                            self.installed.push(package.clone());
+                        } else {
+                            warn!("discarding package install outside of transaction: {package:?}");
+                        }
+                    }
+                    Message::Upgraded(upgrade) => {
+                        if self.is_within_transaction() {
+                            self.upgraded.push(upgrade.clone());
+                        } else {
+                            warn!("discarding package upgrade outside of transaction: {upgrade:?}");
+                        }
+                    }
+                    Message::Reinstalled(package) => {
+                        if self.is_within_transaction() {
+                            self.reinstalled.push(package.clone());
+                        } else {
+                            warn!(
+                                "discarding package reinstall outside of transaction: {package:?}"
+                            );
+                        }
+                    }
+                    Message::Removed(package) => {
+                        if self.is_within_transaction() {
+                            self.removed.push(package.clone());
+                        } else {
+                            warn!("discarding package removal outside of transaction: {package:?}");
+                        }
+                    }
+                    Message::StartingFullSystemUpgrade => {
+                        // TODO: Maybe handle this?
+                    }
+                }
             } else {
                 return self.make_transaction();
-            }
-
-            match entry.message() {
-                Message::TransactionStarted => {
-                    if let Some(transaction) = self.make_transaction() {
-                        self.reset(entry);
-                        return Some(transaction);
-                    }
-
-                    self.reset(entry);
-                }
-                Message::TransactionCompleted => {
-                    self.completion.replace(entry);
-                }
-                Message::Other(_) => {
-                    if matches!(entry.issuer(), Issuer::Alpm | Issuer::AlpmScriptlet) {
-                        self.hooks.push(entry);
-                    }
-                }
-                Message::Installed(package) => {
-                    if self.is_within_transaction() {
-                        self.installed.push(package.clone());
-                    } else {
-                        warn!("discarding package install outside of transaction: {package:?}");
-                    }
-                }
-                Message::Upgraded(upgrade) => {
-                    if self.is_within_transaction() {
-                        self.upgraded.push(upgrade.clone());
-                    } else {
-                        warn!("discarding package upgrade outside of transaction: {upgrade:?}");
-                    }
-                }
-                Message::Reinstalled(package) => {
-                    if self.is_within_transaction() {
-                        self.reinstalled.push(package.clone());
-                    } else {
-                        warn!("discarding package reinstall outside of transaction: {package:?}");
-                    }
-                }
-                Message::Removed(package) => {
-                    if self.is_within_transaction() {
-                        self.removed.push(package.clone());
-                    } else {
-                        warn!("discarding package removal outside of transaction: {package:?}");
-                    }
-                }
-                Message::StartingFullSystemUpgrade => {
-                    // TODO: Maybe handle this?
-                }
             }
         }
     }
