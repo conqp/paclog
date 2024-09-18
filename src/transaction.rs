@@ -120,9 +120,3 @@ impl Transaction {
             })
     }
 }
-
-impl From<Box<[Entry]>> for Transaction {
-    fn from(entries: Box<[Entry]>) -> Self {
-        Self { entries }
-    }
-}
