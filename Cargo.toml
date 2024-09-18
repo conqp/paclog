@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 chrono = "0.4"
+log = { version = "0.4.22", features = [] }
 regex = "1.10"
 
 [dev-dependencies]

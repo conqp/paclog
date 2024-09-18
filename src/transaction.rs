@@ -1,10 +1,18 @@
-use crate::message::{Message, Package};
+use chrono::{DateTime, FixedOffset};
+
+use crate::message::Package;
 use crate::{Entry, Upgrade};
 
 /// Representation of a pacman transaction.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Transaction {
-    entries: Box<[Entry]>,
+    start: Entry,
+    installed: Box<[Package]>,
+    upgraded: Box<[Upgrade]>,
+    reinstalled: Box<[Package]>,
+    removed: Box<[Package]>,
+    completion: Option<Entry>,
+    hooks: Box<[Entry]>,
 }
 
 impl Transaction {
@@ -13,114 +21,91 @@ impl Transaction {
     /// This method is crate-only since we do not want users to
     /// create new transactions from arbitrary entries.
     #[must_use]
-    pub(crate) const fn new(entries: Box<[Entry]>) -> Self {
-        Self { entries }
-    }
 
-    /// Return a slice of the entries.
-    #[must_use]
-    pub const fn entries(&self) -> &[Entry] {
-        &self.entries
-    }
-
-    /// Return the amount of entries.
-    #[must_use]
-    pub const fn len(&self) -> usize {
-        self.entries.len()
-    }
-
-    /// Determine if the transaction is empty.
-    #[must_use]
-    pub const fn is_empty(&self) -> bool {
-        self.entries.is_empty()
-    }
-
-    /// Return an iterator of the entries.
-    pub fn iter(&self) -> impl Iterator<Item = &Entry> {
-        self.entries.iter()
+    pub(crate) const fn new(
+        start: Entry,
+        installed: Box<[Package]>,
+        upgraded: Box<[Upgrade]>,
+        reinstalled: Box<[Package]>,
+        removed: Box<[Package]>,
+        completion: Option<Entry>,
+        hooks: Box<[Entry]>,
+    ) -> Self {
+        Self {
+            start,
+            installed,
+            upgraded,
+            reinstalled,
+            removed,
+            completion,
+            hooks,
+        }
     }
 
     /// Return the start entry.
     #[must_use]
-    pub fn begin(&self) -> Option<&Entry> {
-        self.entries
-            .iter()
-            .find(|entry| matches!(entry.message(), Message::TransactionStarted))
+    pub const fn start(&self) -> &Entry {
+        &self.start
     }
 
-    /// Return the end entry.
+    /// Return a slice of packets that were installed in this transaction.
     #[must_use]
-    pub fn end(&self) -> Option<&Entry> {
-        self.entries
-            .iter()
-            .find(|entry| matches!(entry.message(), Message::TransactionCompleted))
+    pub const fn installed(&self) -> &[Package] {
+        &self.installed
     }
 
-    /// Return an iterator of packet names that were installed in this transaction.
-    pub fn installed(&self) -> impl Iterator<Item = &Package> {
-        self.entries.iter().filter_map(|entry| {
-            if let Message::Installed(package) = entry.message() {
-                Some(package)
-            } else {
-                None
-            }
-        })
+    /// Return a slice of packets that were upgraded in this transaction.
+    #[must_use]
+    pub const fn upgraded(&self) -> &[Upgrade] {
+        &self.upgraded
     }
 
-    /// Return an iterator of packet names that were upgraded in this transaction.
-    pub fn upgraded(&self) -> impl Iterator<Item = &Upgrade> {
-        self.entries.iter().filter_map(|entry| {
-            if let Message::Upgraded(upgrade) = entry.message() {
-                Some(upgrade)
-            } else {
-                None
-            }
-        })
+    /// Return a slice of packets that were reinstalled in this transaction.
+    #[must_use]
+    pub const fn reinstalled(&self) -> &[Package] {
+        &self.reinstalled
     }
 
-    /// Return an iterator of packet names that were reinstalled in this transaction.
-    pub fn reinstalled(&self) -> impl Iterator<Item = &Package> {
-        self.entries.iter().filter_map(|entry| {
-            if let Message::Reinstalled(package) = entry.message() {
-                Some(package)
-            } else {
-                None
-            }
-        })
+    /// Return a slice of packets that were removed in this transaction.
+    #[must_use]
+    pub const fn removed(&self) -> &[Package] {
+        &self.removed
     }
 
-    /// Return an iterator of packet names that were removed in this transaction.
-    pub fn removed(&self) -> impl Iterator<Item = &Package> {
-        self.entries.iter().filter_map(|entry| {
-            if let Message::Removed(package) = entry.message() {
-                Some(package)
-            } else {
-                None
-            }
-        })
+    /// Return the completion entry.
+    #[must_use]
+    pub const fn completion(&self) -> Option<&Entry> {
+        self.completion.as_ref()
+    }
+
+    /// Return the start time.
+    #[must_use]
+    pub const fn begin(&self) -> DateTime<FixedOffset> {
+        self.start.timestamp()
+    }
+
+    /// Return the end time.
+    #[must_use]
+    pub fn end(&self) -> Option<DateTime<FixedOffset>> {
+        self.completion().map(Entry::timestamp)
     }
 
     /// Return an iterator of all packages that were part of this transaction.
     pub fn packages(&self) -> impl Iterator<Item = &str> {
-        self.entries
+        self.installed
             .iter()
-            .filter_map(|entry| match entry.message() {
-                Message::Installed(package)
-                | Message::Reinstalled(package)
-                | Message::Removed(package) => Some(package.name()),
-                Message::Upgraded(upgrade) => Some(upgrade.name()),
-                _ => None,
-            })
+            .chain(self.reinstalled.iter())
+            .chain(self.removed.iter())
+            .map(Package::name)
+            .chain(self.upgraded.iter().map(Upgrade::name))
     }
 
     /// Return an iterator of all packages that were retained in this transaction.
     pub fn retained(&self) -> impl Iterator<Item = &str> {
-        self.entries
+        self.installed
             .iter()
-            .filter_map(|entry| match entry.message() {
-                Message::Installed(package) | Message::Reinstalled(package) => Some(package.name()),
-                Message::Upgraded(upgrade) => Some(upgrade.name()),
-                _ => None,
-            })
+            .chain(self.reinstalled.iter())
+            .map(Package::name)
+            .chain(self.upgraded.iter().map(Upgrade::name))
     }
 }
