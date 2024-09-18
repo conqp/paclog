@@ -2,10 +2,6 @@ use std::str::FromStr;
 
 use regex::Regex;
 
-pub use error::Error;
-
-mod error;
-
 const REGEX: &str = r"^(.+) \((.+)\)$";
 
 /// Represents information about a package.
@@ -30,7 +26,7 @@ impl Package {
 }
 
 impl FromStr for Package {
-    type Err = Error;
+    type Err = String;
 
     fn from_str(text: &str) -> Result<Self, Self::Err> {
         let (_, [name, version]) = Regex::new(REGEX)
@@ -38,7 +34,7 @@ impl FromStr for Package {
             .captures_iter(text)
             .map(|capture| capture.extract())
             .next()
-            .ok_or_else(|| Error::MalformedPackage(text.to_string()))?;
+            .ok_or_else(|| text.to_string())?;
 
         Ok(Self {
             name: name.to_string(),

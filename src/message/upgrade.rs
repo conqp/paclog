@@ -2,10 +2,6 @@ use std::str::FromStr;
 
 use regex::Regex;
 
-pub use error::Error;
-
-mod error;
-
 const REGEX: &str = r"^(.+) \((.+) -> (.+)\)$";
 
 /// Represents a package upgrade.
@@ -37,7 +33,7 @@ impl Upgrade {
 }
 
 impl FromStr for Upgrade {
-    type Err = Error;
+    type Err = String;
 
     fn from_str(text: &str) -> Result<Self, Self::Err> {
         let (_, [name, old_version, new_version]) = Regex::new(REGEX)
@@ -45,7 +41,7 @@ impl FromStr for Upgrade {
             .captures_iter(text)
             .map(|capture| capture.extract())
             .next()
-            .ok_or_else(|| Error::MalformedUpgrade(text.to_string()))?;
+            .ok_or_else(|| text.to_string())?;
 
         Ok(Self {
             name: name.to_string(),

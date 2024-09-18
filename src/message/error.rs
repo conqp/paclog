@@ -1,14 +1,10 @@
 use std::fmt::{Debug, Display};
 
-use super::{package, upgrade};
-
 /// Represents an error while parsing a message.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Error {
-    /// An error parsing a package occurred.
-    Package(package::Error),
-    /// An error parsing an upgrade occurred.
-    Upgrade(upgrade::Error),
+    /// The message was malformed.
+    MalformedMessage(String),
     /// Expected log parameters are missing.
     MissingParameters,
 }
@@ -16,31 +12,16 @@ pub enum Error {
 impl Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Package(error) => Display::fmt(error, f),
-            Self::Upgrade(error) => Display::fmt(error, f),
+            Self::MalformedMessage(message) => write!(f, "malformed message: {message}"),
             Self::MissingParameters => write!(f, "missing parameters"),
         }
     }
 }
 
-impl std::error::Error for Error {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        match self {
-            Self::Package(error) => Some(error),
-            Self::Upgrade(error) => Some(error),
-            Self::MissingParameters => None,
-        }
-    }
-}
+impl std::error::Error for Error {}
 
-impl From<package::Error> for Error {
-    fn from(error: package::Error) -> Self {
-        Self::Package(error)
-    }
-}
-
-impl From<upgrade::Error> for Error {
-    fn from(error: upgrade::Error) -> Self {
-        Self::Upgrade(error)
+impl From<String> for Error {
+    fn from(message: String) -> Self {
+        Self::MalformedMessage(message)
     }
 }
