@@ -1,3 +1,4 @@
+//! Find the largest transaction by amount of affected packages in the pacman logfile.
 use clap::Parser;
 use pacmanlog::{Entry, Transactions};
 use std::fs::OpenOptions;
@@ -24,7 +25,6 @@ fn main() {
     )
     .lines()
     .filter_map(|line| line.ok().and_then(|line| Entry::from_str(&line).ok()))
-    .inspect(|entry| log::debug!("{:?}", entry))
     .transactions()
     .max_by(|a, b| a.len().cmp(&b.len()))
     .expect("No transactions found");
