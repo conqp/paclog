@@ -1,3 +1,4 @@
+//! Library to parse pacman logfiles.
 mod entry;
 mod error;
 mod issuer;

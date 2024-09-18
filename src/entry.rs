@@ -6,6 +6,7 @@ use std::str::FromStr;
 
 const TIME_FORMAT: &str = "%Y-%m-%dT%H:%M:%S%z";
 
+/// A log file entry.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Entry {
     timestamp: DateTime<FixedOffset>,
@@ -14,16 +15,19 @@ pub struct Entry {
 }
 
 impl Entry {
+    /// Returns the entry's timestamp.
     #[must_use]
     pub const fn timestamp(&self) -> DateTime<FixedOffset> {
         self.timestamp
     }
 
+    /// Returns the entry's issuer.
     #[must_use]
     pub const fn issuer(&self) -> &Issuer {
         &self.issuer
     }
 
+    /// Returns the entry's message.
     #[must_use]
     pub const fn message(&self) -> &Message {
         &self.message

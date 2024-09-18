@@ -41,7 +41,7 @@ impl FromStr for Message {
             "installed" => {
                 let package_and_version = parts.next().ok_or(MissingField::PackageAndVersion)?;
                 let captures = regex::Regex::new(INSTALL_REGEX)
-                    .expect("invalid regex")
+                    .unwrap_or_else(|_| unreachable!())
                     .captures(package_and_version)
                     .ok_or(MissingField::PackageAndVersion)?;
                 let mut matches = captures.iter();
@@ -65,7 +65,7 @@ impl FromStr for Message {
             "upgraded" => {
                 let package_and_version = parts.next().ok_or(MissingField::PackageAndVersion)?;
                 let captures = regex::Regex::new(UPGRADE_REGEX)
-                    .expect("invalid regex")
+                    .unwrap_or_else(|_| unreachable!())
                     .captures(package_and_version)
                     .ok_or(MissingField::PackageAndVersion)?;
                 let mut matches = captures.iter();
@@ -95,7 +95,7 @@ impl FromStr for Message {
             "reinstalled" => {
                 let package_and_version = parts.next().ok_or(MissingField::PackageAndVersion)?;
                 let captures = regex::Regex::new(INSTALL_REGEX)
-                    .expect("invalid regex")
+                    .unwrap_or_else(|_| unreachable!())
                     .captures(package_and_version)
                     .ok_or(MissingField::PackageAndVersion)?;
                 let mut matches = captures.iter();

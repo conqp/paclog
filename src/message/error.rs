@@ -10,7 +10,7 @@ pub enum MissingField {
 }
 
 impl Display for MissingField {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::PackageAndVersion => write!(f, "missing package and version"),
             Self::Package => write!(f, "missing package"),

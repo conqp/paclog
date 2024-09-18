@@ -1,16 +1,21 @@
 use chrono::ParseError;
 use std::fmt::Display;
 
+/// Log entry parsing error.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Error {
+    /// Timestamp is missing.
     MissingTimestamp,
+    /// Issuer is missing.
     MissingIssuer,
+    /// Timestamp has invalid format.
     InvalidTimestamp(ParseError),
+    /// Message is invalid.
     InvalidMessage(crate::message::MissingField),
 }
 
 impl Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::MissingTimestamp => write!(f, "missing timestamp"),
             Self::MissingIssuer => write!(f, "missing issuer"),
