@@ -1,4 +1,4 @@
-//! Print the last transaction from the pacman logfile.
+//! Print the nth transaction from the pacman logfile.
 use std::fs::OpenOptions;
 use std::io::{BufRead, BufReader};
 use std::str::FromStr;
