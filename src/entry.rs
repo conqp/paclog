@@ -1,11 +1,13 @@
 use std::str::FromStr;
 
 use chrono::{DateTime, FixedOffset};
+use regex::Regex;
 
 use crate::error::Error;
 use crate::message::Message;
 use crate::Issuer;
 
+const REGEX: &str = r"\[(.+)\] \[.+\] .+";
 const TIME_FORMAT: &str = "%Y-%m-%dT%H:%M:%S%z";
 
 /// A log file entry.
@@ -40,25 +42,17 @@ impl FromStr for Entry {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut parts = s.splitn(3, ' ');
+        let (_, [timestamp, issuer, message]) = Regex::new(REGEX)
+            .unwrap_or_else(|_| unreachable!())
+            .captures_iter(s)
+            .map(|capture| capture.extract())
+            .next()
+            .ok_or_else(|| Error::MalformedEntry(s.to_string()))?;
 
         Ok(Self {
-            timestamp: DateTime::parse_from_str(
-                parts
-                    .next()
-                    .ok_or(Error::MissingTimestamp)?
-                    .trim_start_matches('[')
-                    .trim_end_matches(']'),
-                TIME_FORMAT,
-            )?,
-            issuer: parts
-                .next()
-                .ok_or(Error::MissingIssuer)?
-                .trim_start_matches('[')
-                .trim_end_matches(']')
-                .to_string()
-                .into(),
-            message: Message::from_str(parts.next().ok_or(Error::MissingTimestamp)?)?,
+            timestamp: DateTime::parse_from_str(timestamp, TIME_FORMAT)?,
+            issuer: issuer.to_string().into(),
+            message: Message::from_str(message)?,
         })
     }
 }
