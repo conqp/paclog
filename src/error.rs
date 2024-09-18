@@ -1,5 +1,6 @@
-use chrono::ParseError;
 use std::fmt::Display;
+
+use chrono::ParseError;
 
 /// Log entry parsing error.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]

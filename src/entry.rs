@@ -1,8 +1,10 @@
+use std::str::FromStr;
+
+use chrono::{DateTime, FixedOffset};
+
 use crate::error::Error;
 use crate::message::Message;
 use crate::Issuer;
-use chrono::{DateTime, FixedOffset};
-use std::str::FromStr;
 
 const TIME_FORMAT: &str = "%Y-%m-%dT%H:%M:%S%z";
 
