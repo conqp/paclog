@@ -21,7 +21,6 @@ impl Transaction {
     /// This method is crate-only since we do not want users to
     /// create new transactions from arbitrary entries.
     #[must_use]
-
     pub(crate) const fn new(
         start: Entry,
         installed: Box<[Package]>,
