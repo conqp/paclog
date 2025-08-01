@@ -107,4 +107,16 @@ impl Transaction {
             .map(Package::name)
             .chain(self.upgraded.iter().map(Upgrade::name))
     }
+
+    /// Return the amount of affected packages.
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.installed.len() + self.upgraded.len() + self.reinstalled.len() + self.removed.len()
+    }
+
+    /// Returns `True` if no packages were affected by this transaction.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
 }
