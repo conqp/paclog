@@ -4,7 +4,6 @@ use std::io::{BufRead, BufReader};
 use std::str::FromStr;
 
 use clap::Parser;
-
 use pacmanlog::{Entry, Transactions};
 
 const DEFAULT_FILE: &str = "/var/log/pacman.log";

@@ -1,5 +1,4 @@
-use crate::Entry;
-use crate::TransactionsIterator;
+use crate::{Entry, TransactionsIterator};
 
 /// Group entries into transactions.
 pub trait Transactions: Iterator<Item = Entry> + Sized {

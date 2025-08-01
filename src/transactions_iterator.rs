@@ -1,7 +1,6 @@
 use log::warn;
 
-use crate::{Entry, Issuer, Package, Transaction};
-use crate::{Message, Upgrade};
+use crate::{Entry, Issuer, Message, Package, Transaction, Upgrade};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct TransactionsIterator<T>
